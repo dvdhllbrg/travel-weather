@@ -2,12 +2,29 @@ import { getDateForecast } from "@api/forecast";
 import { searchCity } from "@api/geocoding";
 import { SearchResult } from "@api/geocoding.types";
 import { ForecastCard, ForecastDay } from "@components/ForecastCard";
+import useDebounce from "@hooks/useDebounce";
 import type { NextPage } from "next";
 import Head from "next/head";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type ForecastDays = {
   [key: string]: ForecastDay;
+};
+
+const addDays = (date: Date, days: number) => {
+  const result = new Date(date);
+  result.setDate(date.getDate() + days);
+  return result;
+};
+
+const dateRange = (fromDate: Date, toDate: Date) => {
+  var dateArray = [];
+  var currentDate = fromDate;
+  while (currentDate <= toDate) {
+    dateArray.push(new Date(currentDate));
+    currentDate = addDays(currentDate, 1);
+  }
+  return dateArray;
 };
 
 const Home: NextPage = () => {
@@ -19,33 +36,47 @@ const Home: NextPage = () => {
   const [maxDate] = inTenDays.toISOString().split("T");
 
   const [query, setQuery] = useState("");
-  const [date, setDate] = useState<string>(minDate);
+  const debouncedQuery = useDebounce(query, 500);
+
+  const [fromDate, setFromDate] = useState<string>(minDate);
+  const [toDate, setToDate] = useState<string>(minDate);
   const [cityResults, setCityResults] = useState<SearchResult[]>();
   const [forecast, setForecast] = useState<ForecastDays>();
 
-  const searchCities = async () => {
-    const cities = await searchCity(query);
-    setCityResults(cities);
-  };
+  useEffect(() => {
+    const searchCities = async () => {
+      const cities = await searchCity(debouncedQuery);
+      setCityResults(cities);
+    };
+    if (debouncedQuery) {
+      searchCities();
+    } else {
+      setCityResults(undefined);
+    }
+  }, [debouncedQuery]);
 
   const searchForecast = async (search: SearchResult) => {
-    const forecastResult = await getDateForecast(
-      search.lat,
-      search.lon,
-      new Date(date)
-    );
-    setCityResults(undefined);
-    if (forecastResult) {
-      setForecast({
-        ...forecast,
-        [date]: {
+    const newForecast = { ...forecast };
+
+    dateRange(new Date(fromDate), new Date(toDate)).forEach(async (date) => {
+      const forecastResult = await getDateForecast(
+        search.lat,
+        search.lon,
+        date
+      );
+      if (forecastResult) {
+        newForecast[date.toISOString()] = {
           city: search.address.city,
           country: search.address.country,
           symbol_code: forecastResult.next_6_hours?.summary.symbol_code,
           ...forecastResult.instant.details,
-        },
-      });
-    }
+        };
+      }
+    });
+    console.log({ newForecast });
+    setForecast(newForecast);
+
+    setCityResults(undefined);
   };
 
   return (
@@ -62,26 +93,26 @@ const Home: NextPage = () => {
           <input
             type="date"
             className="inline-flex items-center py-2.5 px-4 text-sm font-medium text-center text-gray-500 bg-gray-100 border border-gray-300 rounded-l-lg hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700 dark:text-white dark:border-gray-600"
-            value={date}
+            value={fromDate}
             min={minDate}
             max={maxDate}
-            onChange={(e) => setDate(e.target.value)}
+            onChange={(e) => setFromDate(e.target.value)}
+          />
+          <input
+            type="date"
+            className="inline-flex items-center py-2.5 px-4 text-sm font-medium text-center text-gray-500 bg-gray-100 border border-gray-300  hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700 dark:text-white dark:border-gray-600"
+            value={toDate}
+            min={fromDate}
+            max={maxDate}
+            onChange={(e) => setToDate(e.target.value)}
           />
           <input
             type="search"
-            className="block p-2.5 grow text-sm text-gray-900 bg-gray-50 border-l-gray-50 border-l-2 border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-l-gray-700  dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
+            className="block p-2.5 grow text-sm text-gray-900 bg-gray-50 border-l-gray-50 border-l-2 border border-gray-300 rounded-r-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-l-gray-700  dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
             placeholder="Search for city"
-            onKeyUp={(e) => (e.key === "Enter" ? searchCities() : null)}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
-          <button
-            type="button"
-            onClick={searchCities}
-            className="p-2.5 text-sm font-medium text-white bg-blue-700 rounded-r-lg border border-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-          >
-            Search cities
-          </button>
         </div>
 
         {cityResults && (
