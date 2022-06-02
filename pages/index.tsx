@@ -1,4 +1,5 @@
-import { getDateForecast } from "@api/forecast";
+import { getDateForecast, getDatesForecast } from "@api/forecast";
+import { Data } from "@api/forecast.types";
 import { searchCity } from "@api/geocoding";
 import { SearchResult } from "@api/geocoding.types";
 import { ForecastCard, ForecastDay } from "@components/ForecastCard";
@@ -58,24 +59,24 @@ const Home: NextPage = () => {
   const searchForecast = async (search: SearchResult) => {
     const newForecast = { ...forecast };
 
-    dateRange(new Date(fromDate), new Date(toDate)).forEach(async (date) => {
-      const forecastResult = await getDateForecast(
-        search.lat,
-        search.lon,
-        date
-      );
-      if (forecastResult) {
-        newForecast[date.toISOString()] = {
+    const dates = dateRange(new Date(fromDate), new Date(toDate));
+    const datesForecastResult = await getDatesForecast(
+      search.lat,
+      search.lon,
+      dates
+    );
+    datesForecastResult
+      ?.filter((o): o is Data => typeof o !== "undefined")
+      .forEach((result, i) => {
+        newForecast[dates[i].toISOString()] = {
           city: search.address.city,
           country: search.address.country,
-          symbol_code: forecastResult.next_6_hours?.summary.symbol_code,
-          ...forecastResult.instant.details,
+          symbol_code: result.next_6_hours?.summary.symbol_code,
+          ...result.instant.details,
         };
-      }
-    });
-    console.log({ newForecast });
-    setForecast(newForecast);
+      });
 
+    setForecast(newForecast);
     setCityResults(undefined);
   };
 

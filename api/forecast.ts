@@ -31,4 +31,25 @@ const getDateForecast = async (lat: string, lon: string, date: Date) => {
   }
 };
 
-export { getForecast, getDateForecast };
+const getDatesForecast = async (lat: string, lon: string, dates: Date[]) => {
+  try {
+    const res = await fetch(`${FORECAST_URL}?lat=${lat}&lon=${lon}`);
+    const forecast: Forecast = await res.json();
+    return dates.map(
+      (date) =>
+        forecast.properties.timeseries.find(({ time }) => {
+          const fDate = new Date(time);
+          return (
+            fDate.getUTCHours() >= 12 &&
+            fDate.getUTCFullYear() === date.getUTCFullYear() &&
+            fDate.getUTCMonth() === date.getUTCMonth() &&
+            fDate.getUTCDate() === date.getUTCDate()
+          );
+        })?.data
+    );
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+export { getForecast, getDateForecast, getDatesForecast };
