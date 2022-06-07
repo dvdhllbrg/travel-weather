@@ -1,7 +1,7 @@
-import { Forecast } from "./forecast.types";
+import { Forecast, Series } from "./forecast.types";
 
 const FORECAST_URL =
-  "https://api.met.no/weatherapi/locationforecast/2.0/compact";
+  "https://api.met.no/weatherapi/locationforecast/2.0/complete";
 
 const getForecast = async (lat: string, lon: string) => {
   try {
@@ -35,21 +35,26 @@ const getDatesForecast = async (lat: string, lon: string, dates: Date[]) => {
   try {
     const res = await fetch(`${FORECAST_URL}?lat=${lat}&lon=${lon}`);
     const forecast: Forecast = await res.json();
-    return dates.map(
-      (date) =>
-        forecast.properties.timeseries.find(({ time }) => {
-          const fDate = new Date(time);
-          return (
-            fDate.getUTCHours() >= 12 &&
-            fDate.getUTCFullYear() === date.getUTCFullYear() &&
-            fDate.getUTCMonth() === date.getUTCMonth() &&
-            fDate.getUTCDate() === date.getUTCDate()
-          );
-        })?.data
-    );
+    return dates.map((date) => ({
+      night: getForecastAtHour(forecast, date, 0)?.next_6_hours,
+      morning: getForecastAtHour(forecast, date, 6)?.next_6_hours,
+      afternoon: getForecastAtHour(forecast, date, 12)?.next_6_hours,
+      evening: getForecastAtHour(forecast, date, 18)?.next_6_hours,
+    }));
   } catch (err) {
     console.error(err);
   }
 };
+
+const getForecastAtHour = (forecast: Forecast, date: Date, hour: number) =>
+  forecast.properties.timeseries.find(({ time }) => {
+    const fDate = new Date(time);
+    return (
+      fDate.getUTCHours() === hour &&
+      fDate.getUTCFullYear() === date.getUTCFullYear() &&
+      fDate.getUTCMonth() === date.getUTCMonth() &&
+      fDate.getUTCDate() === date.getUTCDate()
+    );
+  })?.data;
 
 export { getForecast, getDateForecast, getDatesForecast };

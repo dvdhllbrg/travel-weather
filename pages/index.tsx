@@ -1,16 +1,11 @@
-import { getDateForecast, getDatesForecast } from "@api/forecast";
+import { getDatesForecast } from "@api/forecast";
 import { Data } from "@api/forecast.types";
-import { searchCity } from "@api/geocoding";
 import { SearchResult } from "@api/geocoding.types";
-import { ForecastCard, ForecastDay } from "@components/ForecastCard";
-import useDebounce from "@hooks/useDebounce";
+import { ForecastCard, ForecastDays } from "@components/ForecastCard";
+import { TravelControls } from "@components/TravelControls";
 import type { NextPage } from "next";
 import Head from "next/head";
-import { useEffect, useState } from "react";
-
-type ForecastDays = {
-  [key: string]: ForecastDay;
-};
+import { useState } from "react";
 
 const addDays = (date: Date, days: number) => {
   const result = new Date(date);
@@ -29,34 +24,13 @@ const dateRange = (fromDate: Date, toDate: Date) => {
 };
 
 const Home: NextPage = () => {
-  const today = new Date();
-  const inTenDays = new Date(today);
-  inTenDays.setDate(today.getDate() + 10);
-
-  const [minDate] = today.toISOString().split("T");
-  const [maxDate] = inTenDays.toISOString().split("T");
-
-  const [query, setQuery] = useState("");
-  const debouncedQuery = useDebounce(query, 500);
-
-  const [fromDate, setFromDate] = useState<string>(minDate);
-  const [toDate, setToDate] = useState<string>(minDate);
-  const [cityResults, setCityResults] = useState<SearchResult[]>();
   const [forecast, setForecast] = useState<ForecastDays>();
 
-  useEffect(() => {
-    const searchCities = async () => {
-      const cities = await searchCity(debouncedQuery);
-      setCityResults(cities);
-    };
-    if (debouncedQuery) {
-      searchCities();
-    } else {
-      setCityResults(undefined);
-    }
-  }, [debouncedQuery]);
-
-  const searchForecast = async (search: SearchResult) => {
+  const updateForecast = async (
+    search: SearchResult,
+    fromDate: string,
+    toDate: string
+  ) => {
     const newForecast = { ...forecast };
 
     const dates = dateRange(new Date(fromDate), new Date(toDate));
@@ -65,20 +39,21 @@ const Home: NextPage = () => {
       search.lon,
       dates
     );
-    datesForecastResult
-      ?.filter((o): o is Data => typeof o !== "undefined")
-      .forEach((result, i) => {
-        newForecast[dates[i].toISOString()] = {
-          city: search.address.city,
-          country: search.address.country,
-          symbol_code: result.next_6_hours?.summary.symbol_code,
-          ...result.instant.details,
-        };
-      });
+    datesForecastResult?.forEach((forecast, i) => {
+      const { city, suburb, town, village, hamlet, isolated_dwelling } =
+        search.address;
+      newForecast[dates[i].toISOString()] = {
+        city: city ?? suburb ?? town ?? village ?? hamlet ?? isolated_dwelling,
+        country: search.address.country,
+        forecast,
+      };
+    });
 
     setForecast(newForecast);
-    setCityResults(undefined);
   };
+
+  const dateSort = (a: string, b: string) =>
+    new Date(a).getTime() - new Date(b).getTime();
 
   return (
     <>
@@ -88,59 +63,41 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className="container mx-auto py-6">
-        <h1 className="font-semibold text-3xl mb-4">Travel weather</h1>
-        <div className="flex w-full">
-          <input
-            type="date"
-            className="inline-flex items-center py-2.5 px-4 text-sm font-medium text-center text-gray-500 bg-gray-100 border border-gray-300 rounded-l-lg hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700 dark:text-white dark:border-gray-600"
-            value={fromDate}
-            min={minDate}
-            max={maxDate}
-            onChange={(e) => setFromDate(e.target.value)}
-          />
-          <input
-            type="date"
-            className="inline-flex items-center py-2.5 px-4 text-sm font-medium text-center text-gray-500 bg-gray-100 border border-gray-300  hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700 dark:text-white dark:border-gray-600"
-            value={toDate}
-            min={fromDate}
-            max={maxDate}
-            onChange={(e) => setToDate(e.target.value)}
-          />
-          <input
-            type="search"
-            className="block p-2.5 grow text-sm text-gray-900 bg-gray-50 border-l-gray-50 border-l-2 border border-gray-300 rounded-r-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-l-gray-700  dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
-            placeholder="Search for city"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-        </div>
-
-        {cityResults && (
-          <div className="text-sm font-medium text-gray-900 bg-white border border-gray-200 border-t-0 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-            {cityResults.length === 0 && <span>No results found</span>}
-            {cityResults.length > 0 &&
-              cityResults.map((res) => (
-                <button
-                  key={res.place_id}
-                  type="button"
-                  className="w-full px-4 py-2 text-left border-b border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
-                  onClick={() => searchForecast(res)}
-                >
-                  {res.display_name}
-                </button>
-              ))}
+      <main className="container mx-auto p-6">
+        <h1>Travel weather</h1>
+        <div className="flex gap-8 flex-col lg:flex-row">
+          <div className="lg:w-1/4 mt-8">
+            <TravelControls onForecastSearch={updateForecast} />
           </div>
-        )}
-        {forecast &&
-          Object.keys(forecast).map((forecastDate) => (
-            <ForecastCard
-              key={forecastDate}
-              date={forecastDate}
-              day={forecast[forecastDate]}
-            />
-          ))}
+          {forecast && (
+            <div className="lg:w-3/4 flex flex-col">
+              <div className="flex gap-4 italic text-sm mb-3 text-center">
+                <span className="w-1/5"> </span>
+                <span className="w-1/5">Night</span>
+                <span className="w-1/5">Morning</span>
+                <span className="w-1/5">Afternoon</span>
+                <span className="w-1/5">Evening</span>
+              </div>
+              <div className="flex flex-col gap-4">
+                {Object.keys(forecast)
+                  .sort(dateSort)
+                  .map((forecastDate) => (
+                    <ForecastCard
+                      key={forecastDate}
+                      date={forecastDate}
+                      day={forecast[forecastDate]}
+                    />
+                  ))}
+              </div>
+            </div>
+          )}
+        </div>
       </main>
+      <footer className="container mx-auto p-6 pt-0 italic">
+        Data comes from{" "}
+        <a href="https://www.openstreetmap.org/">OpenStreetMap</a> and{" "}
+        <a href="https://api.met.no/">MET norway</a>. Icons by MET Norway.
+      </footer>
     </>
   );
 };

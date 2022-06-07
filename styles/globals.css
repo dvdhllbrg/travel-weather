@@ -1,3 +1,23 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+body {
+  @apply dark:bg-gray-800 dark:text-white;
+}
+
+h1 {
+  @apply font-semibold text-3xl mb-4 dark:text-white;
+}
+
+h2 {
+  @apply font-semibold dark:text-white;
+}
+
+a {
+  @apply underline text-blue-600 visited:text-blue-800 dark:text-blue-300 dark:visited:text-blue-500;
+}
+
+button {
+  @apply w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 disabled:bg-blue-400 disabled:dark:bg-blue-500 disabled:cursor-not-allowed;
+}
