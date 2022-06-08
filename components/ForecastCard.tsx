@@ -1,4 +1,4 @@
-import { ForecastTimePeriod, NextXHours } from "@api/forecast.types";
+import { NextXHours } from "@api/forecast.types";
 import { Place } from "@api/geocoding.types";
 import Image from "next/image";
 

@@ -1,6 +1,5 @@
 import { getDatesForecast } from "@api/forecast";
-import { Data } from "@api/forecast.types";
-import { Place, SearchResult } from "@api/geocoding.types";
+import { Place } from "@api/geocoding.types";
 import { ForecastCard, ForecastDays } from "@components/ForecastCard";
 import { TravelControls } from "@components/TravelControls";
 import type { NextPage } from "next";

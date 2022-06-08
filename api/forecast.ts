@@ -1,4 +1,4 @@
-import { Forecast, Series } from "./forecast.types";
+import { Forecast } from "./forecast.types";
 
 const FORECAST_URL =
   "https://api.met.no/weatherapi/locationforecast/2.0/complete";

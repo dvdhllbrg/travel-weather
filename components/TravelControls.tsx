@@ -1,5 +1,5 @@
 import { searchPlaces } from "@api/geocoding";
-import { Place, SearchResult } from "@api/geocoding.types";
+import { Place } from "@api/geocoding.types";
 import useDebounce from "@hooks/useDebounce";
 import { useEffect, useState } from "react";
 import { DateRangeInput } from "./DateRangeInput";
