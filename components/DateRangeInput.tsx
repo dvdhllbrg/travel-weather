@@ -28,7 +28,7 @@ export const DateRangeInput = ({
     <div className="flex">
       <input
         type="date"
-        className="w-1/2 py-2.5 px-4 text-sm font-medium text-gray-500 bg-gray-100 border border-gray-300 rounded-l-lg rounded-b-none hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700 dark:text-white dark:border-gray-600"
+        className="w-1/2 py-2.5 px-4 text-sm font-medium text-gray-500 bg-gray-100 border border-gray-300 rounded-tl-lg hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700 dark:text-white dark:border-gray-600"
         value={fromDate}
         min={minDate}
         max={maxDate}
@@ -36,7 +36,7 @@ export const DateRangeInput = ({
       />
       <input
         type="date"
-        className="w-1/2 py-2.5 px-4 text-sm font-medium text-gray-500 bg-gray-100 border border-gray-300 border-l-0 rounded-r-lg rounded-b-none hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700 dark:text-white dark:border-gray-600"
+        className="w-1/2 py-2.5 px-4 text-sm font-medium text-gray-500 bg-gray-100 border border-gray-300 border-l-0 rounded-tr-lg hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700 dark:text-white dark:border-gray-600"
         value={toDate}
         min={fromDate}
         max={maxDate}

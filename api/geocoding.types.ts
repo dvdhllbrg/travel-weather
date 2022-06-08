@@ -1,43 +1,42 @@
-export interface Address {
-  city?: string;
-  municipality?: string;
-  county?: string;
-  "ISO3166-2-lvl4"?: string;
-  postcode?: string;
-  country: string;
-  country_code: string;
-  tourism?: string;
-  house_number?: string;
-  road?: string;
-  suburb?: string;
-  city_district?: string;
-  hamlet?: string;
-  place?: string;
-  town?: string;
-  isolated_dwelling?: string;
-  quarter?: string;
-  state?: string;
-  neighbourhood?: string;
-  office?: string;
-  railway?: string;
-  amenity?: string;
-  building?: string;
-  village?: string;
+export interface SearchResult {
+  features: Feature[];
+  type: string;
 }
 
-export interface SearchResult {
-  place_id: number;
-  licence: string;
-  osm_type: string;
-  osm_id: number;
-  boundingbox: string[];
-  lat: string;
-  lon: string;
-  display_name: string;
-  place_rank: number;
-  category: string;
+export interface Feature {
+  geometry: Geometry;
   type: string;
-  importance: number;
-  icon?: string;
-  address: Address;
+  properties: Properties;
 }
+
+export interface Geometry {
+  coordinates: number[];
+  type: string;
+}
+
+export interface Properties {
+  osm_id: number;
+  extent?: number[];
+  country?: string;
+  city?: string;
+  countrycode?: string;
+  postcode?: string;
+  county?: string;
+  type: string;
+  osm_type: string;
+  osm_key: string;
+  osm_value: string;
+  name: string;
+  state?: string;
+  locality?: string;
+  street?: string;
+  housenumber?: string;
+}
+
+export type Place = {
+  id: string;
+  lat: number;
+  lon: number;
+  type: string;
+  name: string;
+};

@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 body {
-  @apply dark:bg-gray-800 dark:text-white;
+  @apply dark:bg-gray-900 dark:text-white text-gray-900;
 }
 
 h1 {
@@ -11,7 +11,7 @@ h1 {
 }
 
 h2 {
-  @apply font-semibold dark:text-white;
+  @apply font-semibold text-sm dark:text-white;
 }
 
 a {

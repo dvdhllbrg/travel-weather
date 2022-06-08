@@ -31,7 +31,7 @@ const getDateForecast = async (lat: string, lon: string, date: Date) => {
   }
 };
 
-const getDatesForecast = async (lat: string, lon: string, dates: Date[]) => {
+const getDatesForecast = async (lat: number, lon: number, dates: Date[]) => {
   try {
     const res = await fetch(`${FORECAST_URL}?lat=${lat}&lon=${lon}`);
     const forecast: Forecast = await res.json();

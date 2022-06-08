@@ -1,5 +1,5 @@
-import { searchCity } from "@api/geocoding";
-import { SearchResult } from "@api/geocoding.types";
+import { searchPlaces } from "@api/geocoding";
+import { Place, SearchResult } from "@api/geocoding.types";
 import useDebounce from "@hooks/useDebounce";
 import { useEffect, useState } from "react";
 import { DateRangeInput } from "./DateRangeInput";
@@ -11,11 +11,7 @@ type Destination = {
 };
 
 type TravelControlsProps = {
-  onForecastSearch: (
-    search: SearchResult,
-    fromDate: string,
-    toDate: string
-  ) => void;
+  onForecastSearch: (place: Place, fromDate: string, toDate: string) => void;
 };
 
 export const TravelControls = ({
@@ -29,26 +25,26 @@ export const TravelControls = ({
   const [maxDate] = inTenDays.toISOString().split("T");
 
   const [query, setQuery] = useState("");
-  const debouncedQuery = useDebounce(query, 500);
+  const debouncedQuery = useDebounce(query, 50);
 
   const [fromDate, setFromDate] = useState<string>(minDate);
   const [toDate, setToDate] = useState<string>(minDate);
-  const [city, setCity] = useState<SearchResult>();
-  const [cityResults, setCityResults] = useState<SearchResult[]>();
+  const [place, setPlace] = useState<Place>();
+  const [placesResults, setPlacesResults] = useState<Place[]>();
 
-  const updateCity = (newCity: SearchResult) => {
-    setCity(newCity);
-    setCityResults(undefined);
+  const updatePlace = (newPlace: Place) => {
+    setPlace(newPlace);
+    setPlacesResults(undefined);
   };
 
   const searchForecast = () => {
-    if (!city) {
+    if (!place) {
       return;
     }
     setQuery("");
-    onSearch(city, fromDate, toDate);
-    setCityResults(undefined);
-    setCity(undefined);
+    onSearch(place, fromDate, toDate);
+    setPlacesResults(undefined);
+    setPlace(undefined);
   };
 
   const setDateRange = ([fromDate, toDate]: [string, string]) => {
@@ -57,16 +53,23 @@ export const TravelControls = ({
   };
 
   useEffect(() => {
-    const searchCities = async () => {
-      const cities = await searchCity(debouncedQuery);
-      setCityResults(cities);
+    const asyncSearchPlaces = async () => {
+      const places = await searchPlaces(debouncedQuery);
+      setPlacesResults(places);
     };
     if (debouncedQuery) {
-      searchCities();
+      asyncSearchPlaces();
     } else {
-      setCityResults(undefined);
+      setPlacesResults(undefined);
     }
   }, [debouncedQuery]);
+
+  const updateQuery = (newQuery: string) => {
+    if (place) {
+      setPlace(undefined);
+    }
+    setQuery(newQuery);
+  };
 
   return (
     <div className="w-full flex flex-col gap-4">
@@ -80,31 +83,34 @@ export const TravelControls = ({
           <input
             type="search"
             className="w-full block p-2.5 grow text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg rounded-t-none border-t-0 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-l-gray-700  dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
-            placeholder="Search for city"
-            value={city?.display_name ?? query}
-            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search for places"
+            value={place?.name ?? query}
+            onChange={(e) => updateQuery(e.target.value)}
           />
-          {cityResults && (
+          {placesResults && (
             <div className="absolute w-full z-10 text-sm text-gray-900 bg-white border border-gray-200 border-t-0 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-              {cityResults.length === 0 && (
+              {placesResults.length === 0 && (
                 <span className="w-full font-medium">No results found</span>
               )}
-              {cityResults.length > 0 &&
-                cityResults.map((res) => (
+              {placesResults.length > 0 &&
+                placesResults.map((res) => (
                   <button
-                    key={res.place_id}
+                    key={res.id}
                     type="button"
-                    className="w-full font-normal text-gray-900 dark:text-white px-4 py-2 text-left border-b border-gray-200 cursor-pointer hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
-                    onClick={() => updateCity(res)}
+                    className="flex w-full font-normal text-gray-900 dark:text-white px-4 py-2 text-left border-b border-gray-200 cursor-pointer hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
+                    onClick={() => updatePlace(res)}
                   >
-                    {res.display_name}
+                    {res.name}
+                    <span className="text-gray-400 ml-auto italic">
+                      {res.type}
+                    </span>
                   </button>
                 ))}
             </div>
           )}
         </div>
       </div>
-      <button onClick={searchForecast} disabled={!city}>
+      <button onClick={searchForecast} disabled={!place}>
         Add location
       </button>
     </div>
