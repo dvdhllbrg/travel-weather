@@ -6,12 +6,13 @@ export type ForecastDays = {
   [key: string]: ForecastDay;
 };
 
-type period = "night" | "morning" | "afternoon" | "evening";
+type Period = "night" | "morning" | "afternoon" | "evening";
+export type Unit = "C" | "F";
 
 export type ForecastDay = Place & {
   symbol_code?: string;
   forecast: {
-    [key in period]: NextXHours | undefined;
+    [key in Period]: NextXHours | undefined;
   };
 };
 
@@ -19,8 +20,14 @@ type ForecastCardProps = {
   day: ForecastDay;
   date: string;
   onRemove: (date: string) => void;
+  unit: Unit;
 };
-export const ForecastCard = ({ day, date, onRemove }: ForecastCardProps) => {
+export const ForecastCard = ({
+  day,
+  date,
+  onRemove,
+  unit,
+}: ForecastCardProps) => {
   const {
     name,
     forecast: { night, morning, afternoon, evening },
@@ -33,22 +40,22 @@ export const ForecastCard = ({ day, date, onRemove }: ForecastCardProps) => {
         <span>{dateString}</span>
       </div>
       {night ? (
-        <PeriodForecast periodName="Night" period={night} />
+        <PeriodForecast periodName="Night" period={night} unit={unit} />
       ) : (
         <NoForecast />
       )}
       {morning ? (
-        <PeriodForecast periodName="Morning" period={morning} />
+        <PeriodForecast periodName="Morning" period={morning} unit={unit} />
       ) : (
         <NoForecast />
       )}
       {afternoon ? (
-        <PeriodForecast periodName="Afternoon" period={afternoon} />
+        <PeriodForecast periodName="Afternoon" period={afternoon} unit={unit} />
       ) : (
         <NoForecast />
       )}
       {evening ? (
-        <PeriodForecast periodName="Evening" period={evening} />
+        <PeriodForecast periodName="Evening" period={evening} unit={unit} />
       ) : (
         <NoForecast />
       )}
@@ -69,13 +76,19 @@ const NoForecast = () => <span className="w-1/5 hidden md:block"> </span>;
 type PeriodForecastProps = {
   periodName: string;
   period: NextXHours;
+  unit: Unit;
 };
 const PeriodForecast = ({
   periodName,
   period: { summary, details },
+  unit,
 }: PeriodForecastProps) => {
   const { air_temperature_max, air_temperature_min, precipitation_amount } =
     details;
+  const maxTemp =
+    unit === "F" ? cToF(air_temperature_max) : air_temperature_max;
+  const minTemp =
+    unit === "F" ? cToF(air_temperature_min) : air_temperature_min;
   return (
     <div className="md:w-1/5 flex flex-col items-center p-6 max-w-sm bg-white rounded-lg border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700">
       <span className="text-sm italic md:hidden">{periodName}</span>
@@ -87,10 +100,10 @@ const PeriodForecast = ({
       />
       <div>
         <span className="text-lg" title="Highest temperature">
-          &uarr;{round(air_temperature_max)}&deg;C
+          &uarr;{round(maxTemp)}&deg;{unit}
         </span>{" "}
         <span className="text-lg" title="Lowest temperature">
-          &darr;{round(air_temperature_min)}&deg;C
+          &darr;{round(minTemp)}&deg;{unit}
         </span>
       </div>
       <div>
@@ -102,5 +115,7 @@ const PeriodForecast = ({
   );
 };
 
-const round = (n?: number) =>
-  typeof n !== "undefined" ? Math.round(n) : "boop";
+const round = (n?: number) => (typeof n === "undefined" ? "" : Math.round(n));
+
+const cToF = (c?: number) =>
+  typeof c === "undefined" ? undefined : (c * 9) / 5 + 32;

@@ -1,6 +1,6 @@
 import { getDatesForecast } from "@api/forecast";
 import { Place } from "@api/geocoding.types";
-import { ForecastCard, ForecastDays } from "@components/ForecastCard";
+import { ForecastCard, ForecastDays, Unit } from "@components/ForecastCard";
 import { TravelControls } from "@components/TravelControls";
 import type { NextPage } from "next";
 import Head from "next/head";
@@ -22,8 +22,14 @@ const dateRange = (fromDate: Date, toDate: Date) => {
   return dateArray;
 };
 
+const buttonActiveClass =
+  "bg-gray-100 text-blue-700 dark:text-white dark:bg-gray-600";
+const buttonNotActiveClass =
+  "text-gray-900 bg-white dark:bg-gray-700 dark:text-white";
+
 const Home: NextPage = () => {
   const [forecast, setForecast] = useState<ForecastDays>();
+  const [unit, setUnit] = useState<Unit>("C");
 
   const updateForecast = async (
     place: Place,
@@ -74,6 +80,27 @@ const Home: NextPage = () => {
         <div className="flex gap-8 flex-col lg:flex-row">
           <div className="lg:w-1/4 mt-8">
             <TravelControls onForecastSearch={updateForecast} />
+            Show temperatures in{" "}
+            <div className="inline-flex" role="group">
+              <button
+                type="button"
+                onClick={() => setUnit("C")}
+                className={`py-2 px-4 text-sm font-medium  mr-0 rounded-r-none border border-r-0 border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-blue-500 dark:focus:text-white ${
+                  unit === "C" ? buttonActiveClass : buttonNotActiveClass
+                }`}
+              >
+                &deg;C
+              </button>
+              <button
+                type="button"
+                onClick={() => setUnit("F")}
+                className={`py-2 px-4 text-sm font-medium rounded-l-none border-l-none border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-blue-500 dark:focus:text-white ${
+                  unit === "F" ? buttonActiveClass : buttonNotActiveClass
+                }`}
+              >
+                &deg;F
+              </button>
+            </div>
           </div>
           {forecast && (
             <div className="lg:w-3/4 flex md:flex-col">
@@ -93,6 +120,7 @@ const Home: NextPage = () => {
                       date={forecastDate}
                       day={forecast[forecastDate]}
                       onRemove={removeDay}
+                      unit={unit}
                     />
                   ))}
               </div>
