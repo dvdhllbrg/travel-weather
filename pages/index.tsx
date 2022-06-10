@@ -66,13 +66,16 @@ const Home: NextPage = () => {
   return (
     <>
       <Head>
-        <title>Travel Weahter</title>
-        <meta name="description" content="Travel, but also weather" />
+        <title>Travel Weather</title>
+        <meta
+          name="description"
+          content="See what the weather will be like along your travel route, up to 10 days in advance!"
+        />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
       <main className="container mx-auto p-6">
-        <h1>Travel weather</h1>
+        <h1>Travel Weather</h1>
         <p className="mb-4">
           Add your travel destinations (up to 10 days in advance) and see what
           the weather will be like when you&apos;re there!
