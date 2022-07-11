@@ -2,7 +2,7 @@ import { getDatesForecast } from "@api/forecast";
 import { Place } from "@api/geocoding.types";
 import { ForecastCard, ForecastDays, Unit } from "@components/ForecastCard";
 import { TravelControls } from "@components/TravelControls";
-import type { NextPage } from "next";
+import type { GetServerSideProps, NextPage } from "next";
 import Head from "next/head";
 import { useState } from "react";
 
@@ -27,7 +27,11 @@ const buttonActiveClass =
 const buttonNotActiveClass =
   "text-gray-900 bg-white dark:bg-gray-700 dark:text-white";
 
-const Home: NextPage = () => {
+type HomeProps = {
+  todayString: string;
+};
+
+const Home: NextPage<HomeProps> = ({ todayString }) => {
   const [forecast, setForecast] = useState<ForecastDays>();
   const [unit, setUnit] = useState<Unit>("C");
 
@@ -82,7 +86,10 @@ const Home: NextPage = () => {
         </p>
         <div className="flex gap-8 flex-col lg:flex-row">
           <div className="lg:w-1/4 mt-8">
-            <TravelControls onForecastSearch={updateForecast} />
+            <TravelControls
+              onForecastSearch={updateForecast}
+              today={new Date(todayString)}
+            />
             Show temperatures in{" "}
             <div className="inline-flex" role="group">
               <button
@@ -146,5 +153,11 @@ const Home: NextPage = () => {
     </>
   );
 };
+
+export const getServerSideProps: GetServerSideProps = async () => ({
+  props: {
+    todayString: new Date().toISOString(),
+  } as HomeProps,
+});
 
 export default Home;

@@ -4,20 +4,15 @@ import useDebounce from "@hooks/useDebounce";
 import { useEffect, useState } from "react";
 import { DateRangeInput } from "./DateRangeInput";
 
-type Destination = {
-  city: string;
-  fromDate: string;
-  toDate: string;
-};
-
 type TravelControlsProps = {
   onForecastSearch: (place: Place, fromDate: string, toDate: string) => void;
+  today: Date,
 };
 
 export const TravelControls = ({
   onForecastSearch: onSearch,
+  today,
 }: TravelControlsProps) => {
-  const today = new Date();
   const inTenDays = new Date(today);
   inTenDays.setDate(today.getDate() + 10);
 
